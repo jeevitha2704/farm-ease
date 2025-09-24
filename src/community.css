@@ -1,0 +1,10 @@
+.community {
+  min-height: 100vh;
+  background-image: url("https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fimages%2Fsearch%2Ffield%2F&psig=AOvVaw3xwdaVq37t2MXrYHO1aZ5k&ust=1758280891783000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCLiWjfSY4o8DFQAAAAAdAAAAABAV");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* ensures bottom bar sticks at bottom */
+}
