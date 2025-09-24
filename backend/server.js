@@ -10,6 +10,7 @@ import userRoutes from "./routes/users.js";
 import orderRoutes from "./routes/orders.js";
 import postRoutes from "./routes/posts.js";
 import cartRoutes from "./routes/cartRoutes.js";
+import path from "path";
 
 dotenv.config();
 
@@ -31,6 +32,14 @@ app.use("/api/cart", cartRoutes);
 // Test route
 app.get("/", (req, res) => {
   res.send("Backend is running!");
+});
+const __dirname = path.resolve();
+
+// Serve React frontend
+app.use(express.static(path.join(__dirname, "build")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
 // MongoDB connection
