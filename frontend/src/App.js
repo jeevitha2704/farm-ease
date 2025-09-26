@@ -12,7 +12,7 @@ import Cart from "./Cart";
 import MyOrders from "./MyOrders";
 import AllOrders from "./AllOrders";
 import { ProductsProvider } from "./ProductsContext"; // <- new
-import path from "path";
+//import path from "path";
 
 function App() {
   return (
@@ -36,13 +36,13 @@ function App() {
   </ProductsProvider>
   );
 }
-const __dirname = path.resolve();
+//const __dirname = path.resolve();
 
 // Serve React frontend
-app.use(express.static(path.join(__dirname, "build")));
+//app.use(express.static(path.join(__dirname, "build")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
-});
+//app.get("*", (req, res) => {
+ // res.sendFile(path.join(__dirname, "build", "index.html"));
+//});
 
 export default App;
