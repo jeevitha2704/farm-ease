@@ -6,8 +6,7 @@ const ProductDetail = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const [setProduct] = useState(location.state || null);
-  const product = location.state; 
+  const [product, setProduct] = useState(location.state || null);
   useEffect(() => {
     // Fetch product if not passed from state
     if (!product) {

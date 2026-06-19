@@ -2,12 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaAppleAlt, FaDollarSign, FaUser, FaTruck } from "react-icons/fa";
 import { API_BASE_URL } from "./config";
-import { useProducts } from "./ProductsContext";
 
 const AddProduct = () => {
   const navigate = useNavigate();
-  const { products,setProducts } = useProducts();
-  const [message, setMessage] = useState("");
+  const [message] = useState("");
   const [productInfo, setProductInfo] = useState({
     name: "",
     category: "",

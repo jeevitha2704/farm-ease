@@ -40,6 +40,7 @@ const FarmerDashboard = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) return <p>Loading dashboard...</p>;
