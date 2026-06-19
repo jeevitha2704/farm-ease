@@ -9,15 +9,16 @@ const Cart = () => {
   const { cart, setCart } = useCart(); // shared cart state
 
   const userId = "68d11c098e2cf2a631f49432"; // ✅ replace with logged-in user's ID
-  const [cartItems, setCartItems] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [cartItems, setCartItems] = useState(cart);
 
-  // ✅ Fetch cart items from backend
+  // ✅ Fetch cart items from backend, fall back to the local in-app cart
   useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
     const fetchCart = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/cart/${userId}`);
+        const res = await fetch(`${API_BASE_URL}/cart/${userId}`, { signal: controller.signal });
         if (!res.ok) throw new Error("Failed to fetch cart");
         const data = await res.json();
 
@@ -25,14 +26,18 @@ const Cart = () => {
         setCartItems(data.items || []);
         setCart(data.items || []); // update global state
       } catch (err) {
-        console.error("Error fetching cart:", err);
-        setError("Failed to fetch cart");
+        console.error("Cart backend unavailable, using local cart:", err);
       } finally {
-        setLoading(false);
+        clearTimeout(timeout);
       }
     };
 
     fetchCart();
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [userId, setCart]);
 
   // ✅ Remove product from cart
@@ -52,9 +57,6 @@ const Cart = () => {
       console.error("Error removing item:", error);
     }
   };
-
-  if (loading) return <p>Loading cart...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div className="cart-page" style={{ display: "flex" }}>
