@@ -7,8 +7,6 @@ const Marketplace = () => {
   const navigate = useNavigate();
   const { cart, setCart } = useCart();
   const [backendProducts, setBackendProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All Categories");
@@ -28,20 +26,27 @@ const Marketplace = () => {
   ];
 
   useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
     const fetchBackendProducts = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/products");
+        const res = await fetch(`${API_BASE_URL}/products`, { signal: controller.signal });
         if (!res.ok) throw new Error("Failed to fetch products");
         const data = await res.json();
-        setBackendProducts(data);
-        setLoading(false);
+        if (Array.isArray(data)) setBackendProducts(data);
       } catch (err) {
-        console.error(err);
-        setError(err.message);
-        setLoading(false);
+        console.error("Backend products unavailable, showing sample products only:", err);
+      } finally {
+        clearTimeout(timeout);
       }
     };
     fetchBackendProducts();
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, []);
 
   const allProducts = [...sampleProducts, ...backendProducts];
@@ -57,9 +62,6 @@ const Marketplace = () => {
     setCart((prev) => [...prev, { product, quantity: 1 }]);
     alert(`${product.name} added to cart!`);
   };
-
-  if (loading) return <p>Loading products...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
