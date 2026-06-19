@@ -5,7 +5,7 @@ import { useCart } from "./CartContext";
 
 const Marketplace = () => {
   const navigate = useNavigate();
-  const { cart, setCart } = useCart();
+  const { cart, addToCart } = useCart();
   const [backendProducts, setBackendProducts] = useState([]);
 
   const [search, setSearch] = useState("");
@@ -58,8 +58,8 @@ const Marketplace = () => {
     return matchesSearch && matchesCategory && matchesLocation;
   });
 
-  const addToCart = (product) => {
-    setCart((prev) => [...prev, { product, quantity: 1 }]);
+  const handleAddToCart = (product) => {
+    addToCart(product);
     alert(`${product.name} added to cart!`);
   };
 
@@ -144,7 +144,7 @@ const Marketplace = () => {
                   <h3 style={{ color: "#06402B" }}>{product.name}</h3>
                   <p>{product.price}</p>
                   <p>{product.category}</p>
-                  <button style={{ background: "#06402B", color: "white", border: "none", padding: "5px 10px", borderRadius: "5px", cursor: "pointer" }} onClick={() => addToCart(product)}>Add to Cart</button>
+                  <button style={{ background: "#06402B", color: "white", border: "none", padding: "5px 10px", borderRadius: "5px", cursor: "pointer" }} onClick={() => handleAddToCart(product)}>Add to Cart</button>
                 </div>
               ))
             ) : (
