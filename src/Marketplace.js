@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { API_BASE_URL } from "./config";
 import { useCart } from "./CartContext";
+import { useProducts } from "./ProductsContext";
 
 const Marketplace = () => {
   const navigate = useNavigate();
   const { cart, addToCart } = useCart();
-  const [backendProducts, setBackendProducts] = useState([]);
+  const { products: contextProducts } = useProducts();
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All Categories");
@@ -25,31 +26,7 @@ const Marketplace = () => {
     { name: "Strawberries", category: "Fruits", price: "₹300/kg", image: "https://images.pexels.com/photos/46174/strawberries-berries-fruit-freshness-46174.jpeg" },
   ];
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
-    const fetchBackendProducts = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/products`, { signal: controller.signal });
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const data = await res.json();
-        if (Array.isArray(data)) setBackendProducts(data);
-      } catch (err) {
-        console.error("Backend products unavailable, showing sample products only:", err);
-      } finally {
-        clearTimeout(timeout);
-      }
-    };
-    fetchBackendProducts();
-
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, []);
-
-  const allProducts = [...sampleProducts, ...backendProducts];
+  const allProducts = [...contextProducts, ...sampleProducts];
 
   const filteredProducts = allProducts.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
