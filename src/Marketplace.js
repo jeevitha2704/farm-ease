@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { API_BASE_URL } from "./config";
 import { useCart } from "./CartContext";
+import { useProducts } from "./ProductsContext";
 
 const Marketplace = () => {
   const navigate = useNavigate();
-  const { cart, setCart } = useCart();
-  const [backendProducts, setBackendProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { cart, addToCart } = useCart();
+  const { products: contextProducts } = useProducts();
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All Categories");
@@ -27,24 +26,7 @@ const Marketplace = () => {
     { name: "Strawberries", category: "Fruits", price: "₹300/kg", image: "https://images.pexels.com/photos/46174/strawberries-berries-fruit-freshness-46174.jpeg" },
   ];
 
-  useEffect(() => {
-    const fetchBackendProducts = async () => {
-      try {
-        const res = await fetch("http://localhost:4000/api/products");
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const data = await res.json();
-        setBackendProducts(data);
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-    fetchBackendProducts();
-  }, []);
-
-  const allProducts = [...sampleProducts, ...backendProducts];
+  const allProducts = [...contextProducts, ...sampleProducts];
 
   const filteredProducts = allProducts.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
@@ -53,13 +35,10 @@ const Marketplace = () => {
     return matchesSearch && matchesCategory && matchesLocation;
   });
 
-  const addToCart = (product) => {
-    setCart((prev) => [...prev, { product, quantity: 1 }]);
+  const handleAddToCart = (product) => {
+    addToCart(product);
     alert(`${product.name} added to cart!`);
   };
-
-  if (loading) return <p>Loading products...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -142,7 +121,7 @@ const Marketplace = () => {
                   <h3 style={{ color: "#06402B" }}>{product.name}</h3>
                   <p>{product.price}</p>
                   <p>{product.category}</p>
-                  <button style={{ background: "#06402B", color: "white", border: "none", padding: "5px 10px", borderRadius: "5px", cursor: "pointer" }} onClick={() => addToCart(product)}>Add to Cart</button>
+                  <button style={{ background: "#06402B", color: "white", border: "none", padding: "5px 10px", borderRadius: "5px", cursor: "pointer" }} onClick={() => handleAddToCart(product)}>Add to Cart</button>
                 </div>
               ))
             ) : (

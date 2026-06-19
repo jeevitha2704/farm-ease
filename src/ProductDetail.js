@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "./config";
+import { useCart } from "./CartContext";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const [setProduct] = useState(location.state || null);
-  const product = location.state; 
+  const { addToCart } = useCart();
+  const [product, setProduct] = useState(location.state || null);
   useEffect(() => {
     // Fetch product if not passed from state
     if (!product) {
@@ -45,7 +46,13 @@ const ProductDetail = () => {
           <p><strong>Farmer:</strong> {product.farmerName || "Unknown Farmer"}</p>
           <p><strong>Location:</strong> {product.location || "Not specified"}</p>
           <p><strong>Description:</strong> {product.description || "No description available."}</p>
-          <button style={{ backgroundColor: "#06402B", color: "white", marginTop: "10px" }}>
+          <button
+            onClick={() => {
+              addToCart(product);
+              alert(`${product.name} added to cart!`);
+            }}
+            style={{ backgroundColor: "#06402B", color: "white", marginTop: "10px", padding: "8px 12px", border: "none", borderRadius: "5px", cursor: "pointer" }}
+          >
             Add to Cart
           </button>
         </div>

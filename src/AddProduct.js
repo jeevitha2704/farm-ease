@@ -6,8 +6,8 @@ import { useProducts } from "./ProductsContext";
 
 const AddProduct = () => {
   const navigate = useNavigate();
-  const { products,setProducts } = useProducts();
-  const [message, setMessage] = useState("");
+  const { addProduct } = useProducts();
+  const [message] = useState("");
   const [productInfo, setProductInfo] = useState({
     name: "",
     category: "",
@@ -27,47 +27,61 @@ const AddProduct = () => {
   });
 
   // Publish product
-  const handlePublish = () => {
-    const formData = new FormData();
+  const resetForm = () =>
+    setProductInfo({
+      name: "",
+      category: "",
+      description: "",
+      photo: null,
+      organic: false,
+      price: "",
+      unit: "",
+      quantity: "",
+      harvestDate: "",
+      farmerName: "",
+      location: "",
+      contactNumber: "",
+      contactEmail: "",
+      pickupAvailable: false,
+      deliveryAvailable: false,
+    });
 
-    // Append all product info fields
+  const handlePublish = () => {
+    // Add to the shared store immediately so it shows up in the Marketplace
+    addProduct({
+      _id: `local-${Date.now()}`,
+      local: true,
+      name: productInfo.name,
+      category: productInfo.category,
+      description: productInfo.description,
+      price: productInfo.unit
+        ? `₹${productInfo.price}/${productInfo.unit}`
+        : `₹${productInfo.price}`,
+      image: productInfo.photo
+        ? URL.createObjectURL(productInfo.photo)
+        : "https://via.placeholder.com/200x150",
+      farmerName: productInfo.farmerName,
+      location: productInfo.location,
+    });
+
+    // Best-effort persist to the backend when it's reachable
+    const formData = new FormData();
     for (const key in productInfo) {
       if (productInfo[key] !== null) {
         formData.append(key, productInfo[key]);
       }
     }
-
     fetch(`${API_BASE_URL}/products`, {
       method: "POST",
-      body: formData, // send as multipart/form-data
+      body: formData,
     })
       .then((res) => res.json())
-      .then((data) => {
-        console.log("Product published:", data);
-        alert("✅ Product published successfully!");
-        setProductInfo({
-          name: "",
-          category: "",
-          description: "",
-          photo: null,
-          organic: false,
-          price: "",
-          unit: "",
-          quantity: "",
-          harvestDate: "",
-          farmerName: "",
-          location: "",
-          contactNumber: "",
-          contactEmail: "",
-          pickupAvailable: false,
-          deliveryAvailable: false,
-        });
-        navigate("/farmer-dashboard");
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("❌ Failed to publish product");
-      });
+      .then((data) => console.log("Product persisted to backend:", data))
+      .catch((err) => console.error("Backend save skipped (unavailable):", err));
+
+    alert("✅ Product published successfully!");
+    resetForm();
+    navigate("/marketplace");
   };
 
   // Handle input changes

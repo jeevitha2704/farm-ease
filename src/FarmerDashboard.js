@@ -6,44 +6,43 @@ import { useProducts } from "./ProductsContext";
 const FarmerDashboard = () => {
   const navigate = useNavigate();
   const { products, setProducts } = useProducts(); // products from context (including added ones)
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [customerOrders, setCustomerOrders] = useState([]);
   const [activeTab, setActiveTab] = useState("myProducts");
 
-  // Fetch products & orders from backend
-  const fetchData = async () => {
-    setLoading(true);
+  // Fetch products & orders from backend; keep context data if it's unavailable
+  const fetchData = async (signal) => {
     try {
-      // Fetch products from backend
-      const productsRes = await fetch(`${API_BASE_URL}/products`);
+      const productsRes = await fetch(`${API_BASE_URL}/products`, { signal });
       if (!productsRes.ok) throw new Error("Failed to fetch products");
       const backendProducts = await productsRes.json();
 
       // Merge backend products with context products to include newly added ones
       const mergedProducts = [...backendProducts, ...products.filter(p => !p._id)];
       setProducts(mergedProducts);
+    } catch (err) {
+      console.error("Dashboard products unavailable, using local products:", err);
+    }
 
-      // Fetch customer orders
-      const ordersRes = await fetch(`${API_BASE_URL}/orders`);
+    try {
+      const ordersRes = await fetch(`${API_BASE_URL}/orders`, { signal });
       if (!ordersRes.ok) throw new Error("Failed to fetch orders");
       const ordersData = await ordersRes.json();
       setCustomerOrders(ordersData);
-
-      setLoading(false);
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to fetch dashboard data");
-      setLoading(false);
+      console.error("Dashboard orders unavailable:", err);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    fetchData(controller.signal).finally(() => clearTimeout(timeout));
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  if (loading) return <p>Loading dashboard...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>

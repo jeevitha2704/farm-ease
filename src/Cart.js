@@ -1,60 +1,20 @@
 // Cart.js
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { API_BASE_URL } from "./config";
 import { useCart } from "./CartContext";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { cart, setCart } = useCart(); // shared cart state
+  const { cart, removeFromCart } = useCart(); // shared cart state
 
-  const userId = "68d11c098e2cf2a631f49432"; // ✅ replace with logged-in user's ID
-  const [cartItems, setCartItems] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // ✅ Fetch cart items from backend
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/cart/${userId}`);
-        if (!res.ok) throw new Error("Failed to fetch cart");
-        const data = await res.json();
-
-        // backend returns { userId, items: [...] }
-        setCartItems(data.items || []);
-        setCart(data.items || []); // update global state
-      } catch (err) {
-        console.error("Error fetching cart:", err);
-        setError("Failed to fetch cart");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCart();
-  }, [userId, setCart]);
-
-  // ✅ Remove product from cart
-  const removeFromCart = async (productId) => {
-    try {
-      await fetch(`${API_BASE_URL}/cart/${userId}/${productId}`, {
-        method: "DELETE",
-      });
-
-      // Refresh cart after delete
-      const res = await fetch(`${API_BASE_URL}/cart/${userId}`);
-      const updated = await res.json();
-
-      setCartItems(updated.items || []);
-      setCart(updated.items || []);
-    } catch (error) {
-      console.error("Error removing item:", error);
-    }
+  // Normalize item shape: support flat items as well as { product } / { productId }
+  const getProduct = (item) => item.productId || item.product || item;
+  const getId = (item) => {
+    const p = getProduct(item);
+    return p._id || p.name;
   };
 
-  if (loading) return <p>Loading cart...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  const cartItems = cart;
 
   return (
     <div className="cart-page" style={{ display: "flex" }}>
@@ -138,9 +98,12 @@ const Cart = () => {
               marginTop: "20px",
             }}
           >
-            {cartItems.map((item) => (
+            {cartItems.map((item) => {
+              const product = getProduct(item);
+              const id = getId(item);
+              return (
               <div
-                key={item.productId?._id || item.product._id}
+                key={id}
                 className="cart-item"
                 style={{
                   border: "1px solid #ccc",
@@ -151,8 +114,8 @@ const Cart = () => {
                 }}
               >
                 <img
-                  src={item.productId?.image || item.product.image}
-                  alt={item.productId?.name || item.product.name}
+                  src={product.image}
+                  alt={product.name}
                   style={{
                     width: "100%",
                     height: "160px",
@@ -160,19 +123,17 @@ const Cart = () => {
                     borderRadius: "8px",
                   }}
                 />
-                <h3>{item.productId?.name || item.product.name}</h3>
-                <p>Price: ₹{item.productId?.price || item.product.price}</p>
+                <h3>{product.name}</h3>
+                <p>Price: ₹{product.price}</p>
                 <p>Quantity: {item.quantity}</p>
-                <p>Farmer: {item.productId?.farmerName || item.product.farmerName}</p>
+                <p>Farmer: {product.farmerName || "Unknown Farmer"}</p>
 
                 <div
                   className="actions"
                   style={{ display: "flex", gap: "10px", marginTop: "10px" }}
                 >
                   <button
-                    onClick={() =>
-                      removeFromCart(item.productId?._id || item.product._id)
-                    }
+                    onClick={() => removeFromCart(id)}
                     style={{
                       background: "red",
                       color: "white",
@@ -186,7 +147,7 @@ const Cart = () => {
                   </button>
                   <button
                     onClick={() =>
-                      navigate(`/product/${item.productId?._id || item.product._id}`)
+                      navigate(`/product/${id}`, { state: product })
                     }
                     style={{
                       background: "#06402B",
@@ -201,7 +162,8 @@ const Cart = () => {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
